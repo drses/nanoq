@@ -62,6 +62,9 @@
         }
       });
     },
+    isPassByCopy(record) {
+      return Object(record) !== record || passByCopyRecords.has(record);
+    },
     passByCopy(record) {
       if (Q.isPassByCopy(record)) { return record; }
       if (Object.isFrozen(record)) {
@@ -73,9 +76,6 @@
       }
       passByCopyRecords.add(record);
       return record;
-    },
-    isPassByCopy(record) {
-      return Object(record) !== record || passByCopyRecords.has(record);
     }
   }));
 
