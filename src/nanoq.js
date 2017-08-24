@@ -63,7 +63,7 @@
       });
     },
     passByCopy(record) {
-      if (passByCopyRecords.has(record)) { return record; }
+      if (Q.isPassByCopy(record)) { return record; }
       if (Object.isFrozen(record)) {
         throw new TypeError(`already frozen`);
       }
@@ -75,7 +75,7 @@
       return record;
     },
     isPassByCopy(record) {
-      return passByCopyRecords.has(record);
+      return Object(record) !== record || passByCopyRecords.has(record);
     }
   }));
 
