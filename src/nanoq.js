@@ -24,8 +24,8 @@
     const promise = Promise.resolve(farRelay);
     relayToPromise.set(farRelay, promise);
     promiseToRelay.set(promise, farRelay);
-  }  
-  
+  }
+
   function relay(p) {
     return promiseToRelay.get(p) || localRelay;
   }
@@ -44,6 +44,23 @@
     invoke(key, ...args) { return relay(this).POST(this, key, args); },
     fapply(args) { return relay(this).FAPPLY(this, args); },
     fcall(...args) { return relay(this).FAPPLY(this, args); }
+  }));
+
+  Object.defineProperties(Promise, Object.getOwnPropertyDescriptors({
+    join(p, q) {
+      if (Object.is(p, q)) {
+        // When p is a pipeline-able promise, this shortcut preserves
+        // pipelining.
+        return p;
+      }
+      return Promise.all([p, q]).then(([pp, qq]) => {
+        if (Object.is(pp, qq)) {
+          return pp;
+        } else {
+          throw new RangeError("not the same");
+        }
+      });
+    }
   }));
 
   global.Q = Q;
