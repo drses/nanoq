@@ -1,7 +1,7 @@
 (function(global) {
   "use strict";
 
-  // localRelay is not a real relay because of the absence of AWAIT_FAR
+  // A remoteRelay must additionally have an AWAIT_FAR method
   const localRelay = {
     GET(p, key) { return p.then(o => o[key]); },
     PUT(p, key, val) { return p.then(o => o[key] = val); },
@@ -14,16 +14,16 @@
   
   const promiseToRelay = new WeakMap();
   
-  function registerRemote(relay) {
-    const promise = Promise.resolve(relay.AWAIT_FAR());
-    relayToPromise.set(relay, promise);
-    promiseToRelay.set(promise, relay);
+  function registerRemote(remoteRelay) {
+    const promise = Promise.resolve(remoteRelay.AWAIT_FAR());
+    relayToPromise.set(remoteRelay, promise);
+    promiseToRelay.set(promise, remoteRelay);
   }
   
-  function registerFar(relay) {
-    const promise = Promise.resolve(relay);
-    relayToPromise.set(relay, promise);
-    promiseToRelay.set(promise, relay);
+  function registerFar(farRelay) {
+    const promise = Promise.resolve(farRelay);
+    relayToPromise.set(farRelay, promise);
+    promiseToRelay.set(promise, farRelay);
   }  
   
   function relay(p) {
