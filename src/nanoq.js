@@ -11,7 +11,6 @@
   };
   
   const relayToPromise = new WeakMap();
-  
   const promiseToRelay = new WeakMap();
   
   function registerRemote(remoteRelay) {
@@ -46,7 +45,9 @@
     fcall(...args) { return relay(this).FAPPLY(this, args); }
   }));
 
-  Object.defineProperties(Promise, Object.getOwnPropertyDescriptors({
+  const passByCopyRecords = new WeakSet();
+
+  Object.defineProperties(Q, Object.getOwnPropertyDescriptors({
     join(p, q) {
       if (Object.is(p, q)) {
         // When p is a pipeline-able promise, this shortcut preserves
@@ -60,6 +61,21 @@
           throw new RangeError("not the same");
         }
       });
+    },
+    passByCopy(record) {
+      if (passByCopyRecords.has(record)) { return record; }
+      if (Object.isFrozen(record)) {
+        throw new TypeError(`already frozen`);
+      }
+      Object.freeze(record);
+      if (!Object.isFrozen(record)) {
+        throw new TypeError(`failed to freeze`);
+      }
+      passByCopyRecords.add(record);
+      return record;
+    },
+    isPassByCopy(record) {
+      return passByCopyRecords.has(record);
     }
   }));
 
