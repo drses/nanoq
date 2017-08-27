@@ -19,7 +19,8 @@
         return result
       }
     }
-  }
+  };
 
-  global.AsyncQueue = AsyncQueue
+  global.AsyncQueue = AsyncQueue;
+
 })(this);

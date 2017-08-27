@@ -1,31 +1,29 @@
 (function (global) {
   'use strict';
 
-  const Iteration = (value, done) => {
-    return {value, done};
-  }
+  const Iteration = (value, done) => ({value, done});
 
   global.Iteration = Iteration;
 
-  const Stream = (syn, ack) => {
+  const Stream = function (syn, ack) {
     return {
       __proto__: Stream.prototype,
       next(value) {
-        ack.put(Iteration(value, false))
-        return syn.get();
+        syn.put(Iteration(value, false))
+        return ack.get();
       },
       return(value) {
-        ack.put(Iteration(value, true))
-        return syn.get();
+        syn.put(Iteration(value, true))
+        return ack.get();
       },
       throw(error) {
-        ack.put(Promise.reject(error))
-        return syn.get();
+        syn.put(Promise.reject(error))
+        return ack.get();
       },
     }
-  }
+  };
 
-  Stream.prototype = {
+  Object.defineProperties(Stream.prototype, Object.getOwnPropertyDescriptors({
     do(callback, thisp, limit) {
       const sem = AsyncQueue()
       limit = Math.max(1, limit|0)
@@ -81,33 +79,32 @@
           stream.return(iteration.value);
           return
         }
-        start()
         Promise.resolve()
           .then(() => stream.next(iteration.value))
-          .then(finish)
-      })
-      return stream;
+          .then(() => (start(), finish()))
+      });
     },
     through(pipe) {
       this.to(pipe.out);
       return pipe.in;
     },
-  }
+  }));
 
-  Stream.null = {
-    next() {},
-    return() {},
-    throw() {},
-  }
-
-  Stream.from = (iterable) => {
-    const pipe = AsyncPipe()
-    for (const value of iterable) {
-      pipe.out.next(value);
-    }
-    pipe.out.return()
-    return pipe.in;
-  }
+  Object.defineProperties(Stream, Object.getOwnPropertyDescriptors({
+    null: {
+      next() {},
+      return() {},
+      throw() {},
+    },
+    from(iterable, result) {
+      const pipe = AsyncPipe('Stream.from')
+      for (const value of iterable) {
+        pipe.out.next(value);
+      }
+      pipe.out.return(result);
+      return pipe.in;
+    },
+  }));
 
   global.Stream = Stream;
 
@@ -115,10 +112,11 @@
     const from = AsyncQueue();
     const to = AsyncQueue();
     return {
-      in: Stream(from, to),
       out: Stream(to, from),
+      in: Stream(from, to),
     };
   };
 
   global.AsyncPipe = AsyncPipe;
+
 })(this);

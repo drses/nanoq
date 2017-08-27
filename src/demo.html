@@ -2,13 +2,14 @@
 <script src="miniq.js"></script>
 <script src="async-queue.js"></script>
 <script src="async-stream.js"></script>
-<script src="port-stream.js"></script>
+<script src="adapt-stream.js"></script>
 <script>
   (function () {
 
     Stream.from([10, 20, 30, 40, 50, 60])
-      .through(PortStream(new Worker('worker.js')))
-      .forEach(console.log);
+      .through(WebWorkerStream(new Worker('worker.js')))
+      .forEach(console.log)
+      .then(() => console.log('fin'));
 
   })()
 </script>

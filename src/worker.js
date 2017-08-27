@@ -5,15 +5,13 @@ self.importScripts(
   'miniq.js',
   'async-queue.js',
   'async-stream.js',
-  'port-stream.js',
+  'adapt-stream.js',
 )
 
-const s = PortStream(self)
+const s = WebWorkerStream(self)
 s.in.map(
-  async (number) => (
-    await Promise.delay(100 - number),
-    number * 10
-  ),
+  (number) => number * 10,
   null,
   3
-).to(s.out);
+)
+.to(s.out)
